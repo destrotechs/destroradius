@@ -1,13 +1,46 @@
 @extends('layouts.master')
 
 @section('content')
-<div class="card p-4">
-	<div class="card-title"><h4>User Limit Groups</h4></div><hr>
-	@if (session('success'))
+@if (session('success'))
 		    <div class="alert alert-success">
 		        {{ session('success') }}
 		    </div>
 		@endif
+<ul class="nav nav-tabs" id="myTab" role="tablist">
+  <li class="nav-item" role="presentation">
+    <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">Groups available</a>
+  </li>
+  <li class="nav-item" role="presentation">
+    <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false"><i class="fas fa-plus"></i> New limit Group</a>
+  </li>
+</ul>
+<div class="tab-content" id="myTabContent">
+  <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+  	<table class="table table-sm table-bordered table-striped">
+  		<tbody>
+  			{{-- @forelse($groupscheck as $c)
+  			<tr>
+  				<td>{{ $c->groupname }}</td>
+  				<td><a href="{{ route('editgroup',['groupname'=>$c->groupname]) }}" class="btn btn-primary btn-sm"><i class="fas fa-edit"></i></a><a href="{{ route('deletegroup',['groupname'=>$c->groupname]) }}" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></a></td>
+  			</tr>
+  			@empty
+  			
+  			@endforelse --}}
+  			@forelse($groupsreply as $c)
+  			<tr>
+  				<td>{{ $c->groupname }}</td>
+  				<td><a href="{{ route('editgroup',['groupname'=>$c->groupname]) }}" class="btn btn-primary btn-sm"><i class="fas fa-edit"></i></a><a href="{{ route('deletegroup',['groupname'=>$c->groupname]) }}" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></a></td>
+  			</tr>
+  			@empty
+  			
+  			@endforelse
+  		</tbody>
+  	</table>
+  </div>
+  <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+  	<div class="card p-4">
+	<div class="card-title"><h6>User Limit Groups</h6></div><div class="dropdown-divider"></div>
+	
 	<form method="post" action="{{ route('postnewgrouplimit') }}">
 		{{ csrf_field() }}
 		
@@ -50,6 +83,9 @@
 		<button type="submit" class="btn btn-success">Save</button>
 	</form>
 </div>
+  </div>
+</div>
+
 @endsection
 @section('scripts')
 <script type="text/javascript">

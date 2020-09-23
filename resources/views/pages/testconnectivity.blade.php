@@ -11,6 +11,7 @@ function testConnectivity(){
 <div class="card">
 	<div class="card-header"><h4>Test Customer Connectivity</h4></div>
 	<div class="card-body">
+		<div class="bg-success text-white res p-4" style="display: none;"></div>
 		<form>
 			<label>Username</label>
 			<input type="text" name="username" id="username" class="form-control">
@@ -47,7 +48,7 @@ function testConnectivity(){
 					url:"{{ route('testconn') }}",
 					data:{_token:_token,username:username,password:password,server:server,nasport:nasport,nassecret:nassecret},
 					success:function(result){
-						alert(result);
+						$(".res").html(result).show();
 					}
 				});
 			}else{

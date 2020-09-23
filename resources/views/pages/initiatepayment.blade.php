@@ -6,7 +6,7 @@
   </ol>
 </nav>
 	<div class="card card-body">
-		
+		<center><img src="{{ asset('images/mp2.png') }}" width="200" height="100"></center>
 		<div class="procpar" style="display: none;">
 		<div class="card" id="proc">
 			<div class="card-body">
@@ -19,7 +19,7 @@
 					<hr>
 					<button class="btn btn-info btn-md" id="retry" style="display: none;">Retry</button>
 					<hr>
-					<h5>You will be redirected to login page once the transaction completes, please wait...</h5>
+					<h5 id="red">You will be redirected to login page once the transaction completes, please wait...</h5>
 				</center>
 			</div>
 		</div>
@@ -42,13 +42,14 @@
 			<label>Amount</label>
 			<input type="text" name="amount" readonly="readonly" class="form-control amount" value="0">
 			<hr>
-			@if(!isset(Auth::user()->username))
-			<button class="btn btn-success btn-md" type="submit">Send Pay Request</button>			
-			<small class="d-block text-right" id="timer"></small>
+			{{-- @if(!isset(Auth::user()->username)) --}}
+			<button class="btn btn-success btn-md" type="submit">Send Pay Request</button>	
+
+			{{-- <small class="d-block text-right" id="timer"></small>
 			@else
 			<button class="btn btn-success btn-md" type="submit">Buy Now</button>			
 			<small class="d-block text-right" id="timer"></small>
-			@endif
+			@endif --}}
 			{{ csrf_field() }}
 		</form>
 	</div>
@@ -73,6 +74,8 @@
 					$("#timer").addClass("d-block");
 					$("#credform").hide();
 					$(".procpar").show();
+					$(".loader").show();
+					$("#red").show();
 					var req=$.ajax({
 						method:'POST',
 						url:"{{ route('user.post.credentials') }}",
@@ -85,20 +88,24 @@
 						$(".loader").hide();
 						$("h4").empty().html("Failed").addClass('text-danger');
 						$(".err").html("Your transaction could not be completed, check your phone number and try again").addClass("alert alert-danger p-3");
-						setTimeout(function(){
-							window.location.replace('http://hewanet.wifi/login');
-						},10000);
+						$("#red").hide();
+						$("#retry").show();
+						$(".loader").hide();
+					
 						}else{
 							$("#timer").empty().removeClass('d-block').fadeOut();;
 							$(".btn-danger").empty().html('completed').removeClass('btn-danger').addClass("btn-success");
 							$(".err").html(data).addClass("bg-success text-white p-3");
+							setTimeout(function(){
+							window.location.replace('http://hewanet.wifi/login');
+						},5000);
 						}
 					})
 				}
 				}
 				
 			}else{
-				$(".err").html("Enter a valid phone number and select a bundle plan").addClass("alert alert-danger");
+				$(".err").html("Enter a valid phone number in form of 07xx").addClass("alert alert-danger");
 			}
 			e.preventDefault();
 		})
@@ -149,9 +156,12 @@
 			$(".modal").fadeIn(3000);
 		}
 	        
-	        $(".close").click(function(){
+	      $(".close").click(function(){
 	          $(".modal").fadeOut(1000);
 	     })
+	        $("#retry").click(function(){
+	        	location.reload();
+	        })
 	})
 	
 </script>

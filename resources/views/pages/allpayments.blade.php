@@ -1,7 +1,9 @@
 @extends('layouts.master')
 
 @section('content')
-<table class="table table-striped table-bordered">
+<div class="row">
+	<div class="col-md-12 col-sm-12 col-xs-12">
+		<table class="table table-striped table-bordered table-sm">
 	<thead>
 		<tr>
 			<th>#</th>
@@ -9,6 +11,7 @@
 			<th>plan bought</th>
 			<th>amount</th>
 			<th>transaction id</th>
+			<th>Mode of Payment</th>
 			<th>phone</th>
 			<th>payment date</th>
 		</tr>
@@ -21,6 +24,7 @@
 			<td>{{ $n->plan }}</td>
 			<td>{{ $n->amount }}</td>
 			<td>{{ $n->transaction_id }}</td>
+			<td>{{ $n->payment_method }}</td>
 			<td>{{ $n->phone_number }}</td>
 			<td>{{ date('Y/m/d', strtotime(substr($n->transaction_date,0,8)))}}</td>
 		</tr>
@@ -30,5 +34,16 @@
 		</tr>
 		@endforelse
 	</tbody>
+	<tfoot>
+		<tr>
+			<td colspan="7">{!! $payments->links() !!}</td>
+		</tr>
+	</tfoot>
 </table>
+	</div>
+	<div class="col-md-0 col-sm-12 col-xs-12">
+		
+	</div>
+</div>
+
 @endsection

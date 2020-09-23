@@ -3,7 +3,7 @@
 Customers
 @endsection
 @section('content')
-<table class="table table-striped table-bordered table-responsive">
+<table class="table table-striped table-bordered table-active table-sm">
 	<thead>
 	<tr>
 		<th>#</th>
@@ -28,8 +28,8 @@ Customers
 				<td></td>
 				<td>
 					<div class="btn-group" role="group" aria-label="Basic example">
-					  <button type="button" class="btn btn-info text-white"><a href="{{ route('specificcustomer',['id'=>$c->id]) }}" class="text-white"><i class="fa fa-edit"></i></a></button>
-					  <button type="button" class="btn btn-danger"><a href="#" class="text-white"><i class="fa fa-trash"></i></a></button>
+					  <button type="button" class="btn btn-info text-white"><a href="{{ route('specificcustomer',['username'=>$c->username]) }}" class="text-white"><i class="fa fa-edit"></i></a></button>
+					  <button type="button" class="btn btn-danger"><a href="{{ route('removeuser',['id'=>$c->id]) }}" class="text-white"><i class="fa fa-trash"></i></a></button>
 					</div>
 				</td>
 			</tr>
@@ -40,6 +40,11 @@ Customers
 
 		@endforelse
 	</tbody>
+	<tfoot>
+		<tr>
+			<td>{!! $customers->links() !!}</td>
+		</tr>
+	</tfoot>
 </table>
 
 

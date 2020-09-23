@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use DB;
 use Hash;
 use Validator;
+use Route;
+use Auth;
 use RealRashid\SweetAlert\Facades\Alert;
 use App\Charts\userChart;
 class HomeController extends Controller
@@ -39,7 +41,7 @@ class HomeController extends Controller
         return view('home',compact('sales','customers','usersChart','onlineusers'));
     }
     public function getAllCustomers(Request $request){
-        $customers=DB::table('customers')->get();
+        $customers=DB::table('customers')->paginate(20);
                     // ->leftjoin('radcheck','radcheck.username','=','customers.username')
                     // ->leftjoin('radreply','radreply.username','=','customers.username')->get();
         return view('pages.allcustomers',compact('customers'));
@@ -118,12 +120,8 @@ class HomeController extends Controller
     public function fetchCustomer(){
         return view('pages.editcustomer');
     }
-    public function getSpecificCustomer(Request $request,$id){
-        $customerinfo=DB::table('customers')->where('id','=',$id)->get();
-        $username="";
-        foreach ($customerinfo as $key => $c) {
-            $username=$c->username;
-        }
+    public function getSpecificCustomer(Request $request,$username){
+        $customerinfo=DB::table('customers')->where('username','=',$username)->get();
         $checkattributes=DB::table('radcheck')->where('username','=',$username)->get();
         $replyattributes=DB::table('radreply')->where('username','=',$username)->get();
         $limitattributes=DB::table('limitattributes')->distinct()->get();
@@ -136,16 +134,25 @@ class HomeController extends Controller
     public function postFetchCustomer(Request $request){
         $username=$request->get('username');
         $customerdetails=DB::table('customers')->where('customers.username','=',$username)->get();
-        $id=0;
-        if (count($customerdetails)>0) {
-            foreach ($customerdetails as $key => $c) {
-                $id=$c->id;
-            }
-            return redirect()->route('specificcustomer',['id'=>$id]);
+        $customercheck=DB::table('radcheck')->where('username','=',$username)->get();
+        if (count($customerdetails)>0 || count($customercheck)>0) {
+            return redirect()->route('specificcustomer',['username'=>$username]);
         }else{
             return redirect()->back()->with("error","No customer found under username ".$username);
+            //self::getSpecificCustomer2($username);
         }
 
+    }
+    public static function getSpecificCustomer2($username){
+        $customerinfo=array();
+        $checkattributes=DB::table('radcheck')->where('username','=',$username)->get();
+        $replyattributes=DB::table('radreply')->where('username','=',$username)->get();
+        $limitattributes=DB::table('limitattributes')->distinct()->get();
+        $groups=DB::table('radusergroup')->where('username','=',$username)->get();
+        $checkgroups=DB::table('radgroupcheck')->distinct()->get();
+        $allgroups=DB::table('radgroupreply')->distinct()->get();
+        //$allgroups=array_merge($checkgroups,$replygroups);
+        return view('pages.specificcustomer',compact('customerinfo','groups','replyattributes','checkattributes','limitattributes','allgroups'));
     }
     public function getNasList(Request $request){
         $nas=DB::table('nas')->get();
@@ -200,7 +207,9 @@ class HomeController extends Controller
     }
     public function getUserlimitGroups(Request $request){
          $limitattributes=DB::table('limitattributes')->distinct()->get();
-        return view('pages.userlimitgroups',compact('limitattributes'));
+         $groupscheck=DB::table('radgroupcheck')->distinct()->get();
+         $groupsreply=DB::table('radgroupreply')->distinct()->get();
+        return view('pages.userlimitgroups',compact('limitattributes','groupscheck','groupsreply'));
     }
     public function postNewLimitGroup(Request $request){
         $request->validate([
@@ -231,7 +240,8 @@ class HomeController extends Controller
      return redirect()->back()->with("success","Group created successfully");
     }
     public function getAllPayments(Request $request){
-        $payments=DB::table('transactions')->get();
+        $payments=DB::table('transactions')->paginate(15);
+
         return view('pages.allpayments',compact('payments'));
     }
     public function getInitializePayment(){
@@ -239,11 +249,11 @@ class HomeController extends Controller
         return view('pages.initiatepayment',compact('plans'));
     }
     public function getLastConnectionAtt(Request $request){
-        $attempts=DB::table('radpostauth')->orderBy('id','desc')->get();
+        $attempts=DB::table('radpostauth')->orderBy('id','desc')->paginate(15);
         return view('pages.connectionattempts',compact('attempts'));
     }
     public function getOnlineusers(){
-        $onlineusers=DB::table('radacct')->where('acctstoptime','=',NULL)->orWhere('acctstoptime','=','0000-00-00 00:00:00')->paginate(10);
+        $onlineusers=DB::table('radacct')->where('acctstoptime','=',NULL)->orWhere('acctstoptime','=','0000-00-00 00:00:00')->paginate(15);
         return view('pages.onlineusers',compact('onlineusers'));
     }
     public function getUserAccounting(){
@@ -252,16 +262,44 @@ class HomeController extends Controller
     public function userAccounting(Request $request){
         $username=$request->get('username');
         $useraccounting=DB::table('radacct')->where('username','=',$username)->get();
+        $totalsessiontime=DB::table('radacct')->where('username','=',$username)->sum('acctsessiontime');
+        $totaldownload=DB::table('radacct')->where('username','=',$username)->sum('AcctInputOctets');
+        $totaldownload=round($totaldownload/(1024*1024),2);
+        $totalupload=DB::table('radacct')->where('username','=',$username)->sum('AcctOutputOctets');
+        $totalupload=round($totalupload/(1024*1024));
+
+        $totalbandwidth=$totalupload+$totaldownload;
+
+        if ($totalsessiontime>=60 && $totalsessiontime<3600) {
+            $totalsessiontime=($totalsessiontime/60);
+            $totalsessiontime.=" Minutes";
+        }else if ($totalsessiontime>=3600) {
+            $totalsessiontime=$totalsessiontime/3600;
+            $totalsessiontime.= " Hours";
+        }else{
+            $totalsessiontime.=" Seconds";
+        }
         $output='<table class="table table-striped table-bordered table-sm"><thead><tr><th>ID</th><th>username</th><th>Ip Address</th><th>Start Time</th><th>End Time</th><th>Total Time</th><th>Uplaod</th><th>Download</th><th>Termination Cause</th><th>Nas IP address</th></tr></thead><tbody>';
         if (count($useraccounting)>0) {
            foreach ($useraccounting as $key => $o) {
-            $output.='<tr><td>'.$o->radacctid.'</td><td>'.$o->username.'</td><td>'.$o->framedipaddress.'</td><td>'.$o->acctstarttime.'</td><td>'.$o->acctstoptime.'</td><td>'.($o->acctstoptime-$o->acctstarttime).'</td><td>'.$o->acctoutputoctets.'</td><td>'.$o->acctinputoctets.'</td><td>'.$o->acctterminationcause.'</td><td>'.$o->nasipaddress.'</td></tr>';
+            $timespent=$o->acctsessiontime;
+            if ($timespent<60) {
+                $timespent.=" Seconds";
+            }
+            else if ($timespent>=60 && $timespent<3600) {
+                $timespent=($timespent/60);
+                $timespent.=" Minutes";
+            }else {
+                $timespent=($timespent/3600);
+                $timespent.=" Hours";
+            }
+            $output.='<tr><td>'.$o->radacctid.'</td><td>'.$o->username.'</td><td>'.$o->framedipaddress.'</td><td>'.$o->acctstarttime.'</td><td>'.$o->acctstoptime.'</td><td>'.$timespent.'</td><td>'.$o->AcctOutputOctets.'</td><td>'.$o->AcctInputOctets.'</td><td>'.$o->acctterminatecause.'</td><td>'.$o->nasipaddress.'</td></tr>';
             }
         }else{
             $output.='<tr><td colspan="10" class="alert alert-danger">No accounting records for this user</td></tr>';
         }
         
-        $output.='</tbody></table>';
+        $output.='</tbody><tfoot><tr><td colspan="4">Total Session Time '.$totalsessiontime.'</td><td colspan="2">Total Download Bandwidth '.$totaldownload.' Mbs</td><td colspan="2">Total Upload Bandwidth '.$totalupload.' Mbs</td><td colspan="2">Total Bandwidth '.$totalbandwidth.' Mbs</td></tr></tfoot></table>';
         echo $output;
 
     }
@@ -271,16 +309,46 @@ class HomeController extends Controller
     public function ipAccounting(Request $request){
         $ip=$request->get('ip');
         $useraccounting=DB::table('radacct')->where('framedipaddress','=',$ip)->get();
+        $totalsessiontime=DB::table('radacct')->where('framedipaddress','=',$ip)->sum('acctsessiontime');
+        $totaldownload=DB::table('radacct')->where('framedipaddress','=',$ip)->sum('AcctInputOctets');
+        $totaldownload=round($totaldownload/(1024*1024),2);
+        $totalupload=DB::table('radacct')->where('framedipaddress','=',$ip)->sum('AcctOutputOctets');
+        $totalupload=round($totalupload/(1024*1024));
+
+        $totalbandwidth=$totalupload+$totaldownload;
+
+
+        if ($totalsessiontime>=60 && $totalsessiontime<3600) {
+            $totalsessiontime=($totalsessiontime/60);
+            $totalsessiontime.=" Minutes";
+        }else if ($totalsessiontime>=3600) {
+            $totalsessiontime=$totalsessiontime/3600;
+            $totalsessiontime.= " Hours";
+        }else{
+            $totalsessiontime.=" Seconds";
+        }
         $output='<table class="table table-striped table-bordered table-sm"><thead><tr><th>ID</th><th>username</th><th>Ip Address</th><th>Start Time</th><th>End Time</th><th>Total Time</th><th>Uplaod</th><th>Download</th><th>Termination Cause</th><th>Nas IP address</th></tr></thead><tbody>';
         if (count($useraccounting)>0) {
            foreach ($useraccounting as $key => $o) {
-            $output.='<tr><td>'.$o->radacctid.'</td><td>'.$o->username.'</td><td>'.$o->framedipaddress.'</td><td>'.$o->acctstarttime.'</td><td>'.$o->acctstoptime.'</td><td>'.($o->acctstoptime-$o->acctstarttime).'</td><td>'.$o->acctoutputoctets.'</td><td>'.$o->acctinputoctets.'</td><td>'.$o->acctterminationcause.'</td><td>'.$o->nasipaddress.'</td></tr>';
+            $timespent=$o->acctsessiontime;
+            if ($timespent<60) {
+                $timespent.=" Seconds";
+            }
+            else if ($timespent>=60 && $timespent<3600) {
+                $timespent=($timespent/60);
+                $timespent.=" Minutes";
+            }else {
+                $timespent=($timespent/3600);
+                $timespent.=" Hours";
+            }
+            
+            $output.='<tr><td>'.$o->radacctid.'</td><td>'.$o->username.'</td><td>'.$o->framedipaddress.'</td><td>'.$o->acctstarttime.'</td><td>'.$o->acctstoptime.'</td><td>'.$timespent.'</td><td>'.$o->AcctOutputOctets.'</td><td>'.$o->AcctInputOctets.'</td><td>'.$o->acctterminatecause.'</td><td>'.$o->nasipaddress.'</td></tr>';
             }
         }else{
             $output.='<tr><td colspan="10" class="alert alert-danger">No accounting records for this ip</td></tr>';
         }
         
-        $output.='</tbody></table>';
+        $output.='</tbody><tfoot><tr><td colspan="4">Total Session Time '.$totalsessiontime.'</td><td colspan="2">Total Download Bandwidth '.$totaldownload.' Mbs</td><td colspan="2">Total Upload Bandwidth '.$totalupload.' Mbs</td><td colspan="2">Total Bandwidth '.$totalbandwidth.' Mbs</td></tr></tfoot></table>';
         echo $output;
     }
     public function getNasAccounting(){
@@ -289,16 +357,46 @@ class HomeController extends Controller
     public function nasAccounting(Request $request){
         $ip=$request->get('ip');
         $useraccounting=DB::table('radacct')->where('nasipaddress','=',$ip)->get();
+        $totalsessiontime=DB::table('radacct')->where('nasipaddress','=',$ip)->sum('acctsessiontime');
+        $totaldownload=DB::table('radacct')->where('nasipaddress','=',$ip)->sum('AcctInputOctets');
+        $totaldownload=round($totaldownload/(1024*1024),2);
+        $totalupload=DB::table('radacct')->where('nasipaddress','=',$ip)->sum('AcctOutputOctets');
+        $totalupload=round($totalupload/(1024*1024));
+
+        $totalbandwidth=$totalupload+$totaldownload;
+
+        
+        if ($totalsessiontime>=60 && $totalsessiontime<3600) {
+            $totalsessiontime=($totalsessiontime/60);
+            $totalsessiontime.=" Minutes";
+        }else if ($totalsessiontime>=3600) {
+            $totalsessiontime=$totalsessiontime/3600;
+            $totalsessiontime.= " Hours";
+        }else{
+            $totalsessiontime.=" Seconds";
+        }
         $output='<table class="table table-striped table-bordered table-sm"><thead><tr><th>ID</th><th>username</th><th>Ip Address</th><th>Start Time</th><th>End Time</th><th>Total Time</th><th>Uplaod</th><th>Download</th><th>Termination Cause</th><th>Nas IP address</th></tr></thead><tbody>';
         if (count($useraccounting)>0) {
            foreach ($useraccounting as $key => $o) {
-            $output.='<tr><td>'.$o->radacctid.'</td><td>'.$o->username.'</td><td>'.$o->framedipaddress.'</td><td>'.$o->acctstarttime.'</td><td>'.$o->acctstoptime.'</td><td>'.($o->acctstoptime-$o->acctstarttime).'</td><td>'.$o->acctoutputoctets.'</td><td>'.$o->acctinputoctets.'</td><td>'.$o->acctterminationcause.'</td><td>'.$o->nasipaddress.'</td></tr>';
+            $timespent=$o->acctsessiontime;
+            if ($timespent<60) {
+                $timespent.=" Seconds";
+            }
+            else if ($timespent>=60 && $timespent<3600) {
+                $timespent=($timespent/60);
+                $timespent.=" Minutes";
+            }else {
+                $timespent=($timespent/3600);
+                $timespent.=" Hours";
+            }
+            
+            $output.='<tr><td>'.$o->radacctid.'</td><td>'.$o->username.'</td><td>'.$o->framedipaddress.'</td><td>'.$o->acctstarttime.'</td><td>'.$o->acctstoptime.'</td><td>'.$timespent.'</td><td>'.$o->AcctOutputOctets.'</td><td>'.$o->AcctInputOctets.'</td><td>'.$o->acctterminatecause.'</td><td>'.$o->nasipaddress.'</td></tr>';
             }
         }else{
-            $output.='<tr><td colspan="10" class="alert alert-danger">No accounting records for nas '.$ip.'</td></tr>';
+            $output.='<tr><td colspan="10" class="alert alert-danger">No accounting records for this ip</td></tr>';
         }
         
-        $output.='</tbody></table>';
+        $output.='</tbody><tfoot><tr><td colspan="4">Total Session Time '.$totalsessiontime.'</td><td colspan="2">Total Download Bandwidth '.$totaldownload.' Mbs</td><td colspan="2">Total Upload Bandwidth '.$totalupload.' Mbs</td><td colspan="2">Total Bandwidth '.$totalbandwidth.' Mbs</td></tr></tfoot></table>';
         echo $output;
     }
     public function getPlans(Request $request){
@@ -482,7 +580,7 @@ class HomeController extends Controller
     public function postTestConn(Request $request){
         //radtest testing password localhost 0 testing123
         $cmd="radtest ".escapeshellarg($request->get('username'))." ".escapeshellarg($request->get('password'))." ".escapeshellarg($request->get('server'))." ".escapeshellarg($request->get('nasport'))." ".escapeshellarg($request->get('nassecret'));
-        $res=shell_exec($cmd);
+        $res=system($cmd);
         if($res==" " || $res==NULL){
             echo "The command was not executed successfully";
 
@@ -491,6 +589,255 @@ class HomeController extends Controller
         }
     }
     public function getUserLimits(){
-        return view('pages.userlimits');
+        $userlimits=DB::table('limitattributes')->paginate(20);
+        return view('pages.userlimits',compact('userlimits'));
+    }
+    public function removeuser(Request $request){
+        $id = Route::current()->parameter('id');
+        if ($id!=0 && $id!="") {
+            $customer=DB::table('customers')->where('id','=',$id)->get();
+            return view('pages.deletecustomer',compact('customer'));
+        }
+        else{
+            return view('pages.deletecustomer');
+        }
+    }
+    public function postRemoveUser(Request $request){
+        $username=$request->get('username');
+        $deleterecords=$request->get('deleterecords');
+        $usercount=DB::table('radcheck')->where('username','=',$username)->count();
+        if ($usercount>0) {
+            //delete radcheck
+        $user=DB::table('radcheck')->where('username','=',$username)->delete();
+
+        //delete radreply
+        $user=DB::table('radreply')->where('username','=',$username)->delete();
+
+
+        //delete user from groups
+       $user=DB::table('radusergroup')->where('username','=',$username)->delete();
+       if ($deleterecords=="yes") {
+            $user=DB::table('radacct')->where('username','=',$username)->delete();
+
+       }
+       //delete from customers
+        $user=DB::table('customers')->where('username','=',$username)->delete();
+
+       return redirect()->back()->with("success","User ".$username." has been removed successfully");
+        }else{
+            return redirect()->back()->with("error","User ".$username." could not be found on radius database");
+        }
+        
+
+    }
+    public function deleteNas(Request $request,$id){
+        $nas=DB::table('nas')->where('id','=',$id)->delete();
+        if ($nas==true) {
+           return redirect()->back()->with("success","Nas has been removed successfully");
+        }else{
+            return redirect()->back()->with("error","Nas could not be removed, try again");
+        }
+    }
+    public function getTopUser(){
+        $users=DB::table('radcheck')->distinct()->get(['username']);
+       
+        return view('pages.topuser');
+    }
+    public function getVouchers(){
+        $plans=DB::table('bundle_plans')->get();
+        return view('pages.vouchers',compact('plans'));
+    }
+     public function getSendsms(){
+        return view('pages.sendsms');
+    }
+    public function saveVouchers(Request $request){
+        $username=$request->get('username');
+        $password=$request->get('password');
+        $plan=$request->get('plan');
+        $serialnumber=$request->get('serialnumber');
+        $created_by=Auth::user()->email;
+        $cost=$request->get('cost');
+        foreach($username as $key=> $u){
+            //save voucher data
+            $voucher=DB::table('vouchers')->insert(['username'=>$u,'password'=>$password[$key],'serialnumber'=>$serialnumber[$key],'plan'=>$plan[$key],'created_by'=>$created_by,'cost'=>$cost]);
+
+            //add user details to radius
+            self::createUserPlan($u,$password[$key],$plan[$key]);
+        }
+        return redirect()->back()->with("success","Vouchers activated successfully");
+    }
+    public static function createUserPlan($user,$pass,$plan){
+        if($plan=='50mbs'){
+            $totalbundle=50*1024*1024;
+            $customercheck=DB::table('radcheck')->insert([
+                ['username'=>$user,'attribute'=>'Cleartext-Password','op'=>':=','value'=>$pass],
+                ['username'=>$user,'attribute'=>'Max-All-MB','op'=>':=','value'=>$totalbundle],
+            ]);
+            $customercheck=DB::table('radreply')->insert(
+                ['username'=>$user,'attribute'=>'Max-All-MB','op'=>':=','value'=>$totalbundle]
+            );
+        }
+        else if($plan=='100mbs'){
+            $totalbundle=100*1024*1024;
+            $customercheck=DB::table('radcheck')->insert([
+                ['username'=>$user,'attribute'=>'Cleartext-Password','op'=>':=','value'=>$pass],
+                ['username'=>$user,'attribute'=>'Max-All-MB','op'=>':=','value'=>$totalbundle],
+            ]);
+            $customercheck=DB::table('radreply')->insert(
+                ['username'=>$user,'attribute'=>'Max-All-MB','op'=>':=','value'=>$totalbundle]
+            );
+        }else if($plan=='250mbs'){
+            $totalbundle=250*1024*1024;
+            $customercheck=DB::table('radcheck')->insert([
+                ['username'=>$user,'attribute'=>'Cleartext-Password','op'=>':=','value'=>$pass],
+                ['username'=>$user,'attribute'=>'Max-All-MB','op'=>':=','value'=>$totalbundle],
+            ]);
+            $customercheck=DB::table('radreply')->insert(
+                ['username'=>$user,'attribute'=>'Max-All-MB','op'=>':=','value'=>$totalbundle]
+            );
+        }else if($plan=='500mbs'){
+            $totalbundle=500*1024*1024;
+            $customercheck=DB::table('radcheck')->insert([
+                ['username'=>$user,'attribute'=>'Cleartext-Password','op'=>':=','value'=>$pass],
+                ['username'=>$user,'attribute'=>'Max-All-MB','op'=>':=','value'=>$totalbundle],
+            ]);
+            $customercheck=DB::table('radreply')->insert(
+                ['username'=>$user,'attribute'=>'Max-All-MB','op'=>':=','value'=>$totalbundle]
+            );
+        }else if($plan=='1gb'){
+            $totalbundle=1024*1024*1024;
+            $customercheck=DB::table('radcheck')->insert([
+                ['username'=>$user,'attribute'=>'Cleartext-Password','op'=>':=','value'=>$pass],
+                ['username'=>$user,'attribute'=>'Max-All-MB','op'=>':=','value'=>$totalbundle],
+            ]);
+            $customercheck=DB::table('radreply')->insert(
+                ['username'=>$user,'attribute'=>'Max-All-MB','op'=>':=','value'=>$totalbundle]
+            );
+        }else if($plan=='2gb'){
+            $totalbundle=2048*1024*1024;
+            $customercheck=DB::table('radcheck')->insert([
+                ['username'=>$user,'attribute'=>'Cleartext-Password','op'=>':=','value'=>$pass],
+                ['username'=>$user,'attribute'=>'Max-All-MB','op'=>':=','value'=>$totalbundle],
+            ]);
+            $customercheck=DB::table('radreply')->insert(
+                ['username'=>$user,'attribute'=>'Max-All-MB','op'=>':=','value'=>$totalbundle]
+            );
+        }
+    }
+    public function getAllVouchers(){
+        $availablev=DB::table('vouchers')->where('status','=','notsold')->paginate(6);
+        return view('pages.allvouchers',compact('usedv','availablev'));
+    }
+    public function getSellVoucher(Request $request,$id){
+        $voucher=DB::table('vouchers')->where([['id','=',$id],['status','=','notsold']])->get();
+        return view('pages.sellvoucher',compact('voucher'));
+    }
+    public function markVoucherPaid(Request $request){
+        $id=$request->get('id');
+        $plan=$request->get('plan');
+        $cost=$request->get('cost');
+        $username=$request->get('username');
+        $serialnumber=$request->get('serialnumber');
+        $date=date("YmdHis");
+        $detail=DB::table('vouchers')
+              ->where('id', $id)
+              ->update(['status' => 'sold']);
+              if($detail){
+                $transaction=DB::table('transactions')->insert(['username'=>$username,'payment_method'=>'Voucher sold','amount'=>$cost,'plan'=>$plan,'transaction_id'=>$serialnumber,'transaction_date'=>$date,'phone_number'=>0]);
+                echo "success";
+              }else{
+                echo "There was an error marking voucher as sold";
+              }
+    }
+    public function bundlebalance(Request $request){
+        return view('pages.bundlebalance');
+    }
+    public function fetchBalance(Request $request){
+        $username=$request->get('username');
+
+        $user=DB::table('radcheck')->where('username','=',$username)->get();
+        $mbsused=0;
+        $totalbytesrecord=0;
+        $remainder=0;
+        if(count($user)>0){
+            $userdata=DB::table('radcheck')->where([['username','=',$username],['attribute','=','Max-All-MB']])->get();
+            foreach ($userdata as $key => $data) {
+                $totalbytesrecord=$data->value;
+            }
+            $totaldownbs=DB::table('radacct')->where('username','=',$username)->sum('AcctInputOctets');
+            $totalupbs=DB::table('radacct')->where('username','=',$username)->sum('AcctOutputOctets');
+            $mbsused=($totaldownbs+$totalupbs);
+
+            $totalbytesrecord=($totalbytesrecord/(1024*1024));
+            $remainder=$totalbytesrecord-$mbsused;
+
+             echo '<tr><td>'.round($totalbytesrecord,2).' MBs</td><td>'.round($mbsused,2).' MBs</td><td>'.round($remainder,2).' MBs</td></tr>';
+        }else{
+            echo "error";
+        }
+        
+    }
+    public function getEditgroup(Request $request,$groupname){
+        $groupname=$groupname;
+        $checklimits=DB::table('radgroupcheck')->where('groupname','=',$groupname)->get();
+        $replylimits=DB::table('radgroupreply')->where('groupname','=',$groupname)->get();
+        $limitattributes=DB::table('limitattributes')->get();
+        return view('pages.editgroup',compact('groupname','checklimits','replylimits','limitattributes'));
+    }
+    public function getDeletegroup($groupname){
+        $delcheck=DB::table('radgroupcheck')->where('groupname','=',$groupname)->delete();
+        $delreply=DB::table('radgroupreply')->where('groupname','=',$groupname)->delete();
+        $delusergroup=DB::table('radusergroup')->where('groupname','=',$groupname)->delete();
+        return redirect()->route('userlimitgroups')->with('success','group with associated users removed successfully');
+    }
+    public function postEditedGroup(Request $request){
+        $attribute=$request->get('attribute');
+        $attributevalue=$request->get('value');
+        $op=$request->get('op');
+        $type=$request->get('type');
+        $groupname=$request->get('groupname');
+        if(isset($attribute)){
+            for ($i=0; $i < count($attribute); $i++) { 
+                    if($type[$i]=='reply'){
+                        DB::table('radgroupreply')->updateOrInsert(
+                            ['groupname'=>$groupname,'attribute'=>$attribute[$i]],
+                            ['op'=>$op[$i],'value'=>$attributevalue[$i]]
+                        );  
+                    }else{
+                        DB::table('radgroupcheck')->updateOrInsert(
+                            ['groupname'=>$groupname,'attribute'=>$attribute[$i]],
+                            ['op'=>$op[$i],'value'=>$attributevalue[$i]]
+                        );
+                    }
+                
+            }
+        }
+        return redirect()->back()->with("success","group limits updated successfully");
+    }
+    public function postDeleteCheckLimit(Request $request,$id){
+        $removelim=DB::table('radgroupcheck')->where('id','=',$id)->delete();
+        return redirect()->back()->with("success","Limit removed successfully from the group");
+    }
+    public function postDeleteReplyLimit(Request $request,$id){
+        $removelim=DB::table('radgroupreply')->where('id','=',$id)->delete();
+        return redirect()->back()->with("success","Limit removed successfully from the group");
+    }
+     public function postDeleteCheckUserLimit(Request $request,$id){
+        $removelim=DB::table('radcheck')->where('id','=',$id)->delete();
+        return redirect()->back()->with("success","user limits updated successfully");
+    }
+    public function postDeleteReplyUserLimit(Request $request,$id){
+        $removelim=DB::table('radreply')->where('id','=',$id)->delete();
+        return redirect()->back()->with("success","user limits updated successfully");
+    }
+    public function searchUser(Request $request){
+        $skey=$request->get('skey');
+        $usernames=DB::table('radcheck')->where('username','LIKE','%'.$skey.'%')->pluck('username');
+        $output="";
+        foreach($usernames as $u){
+            $output.= "<p>".$u."</p>";
+        }
+        $output.="";
+        echo $output;
     }
 }

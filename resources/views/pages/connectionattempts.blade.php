@@ -28,6 +28,11 @@ Last Connection Attempts
 				</tr>
 				@endforelse
 			</tbody>
+			<tfoot>
+				<tr>
+					<td colspan="4">{!! $attempts->links() !!}</td>
+				</tr>
+			</tfoot>
 		</table>
 	</div>
 </div>

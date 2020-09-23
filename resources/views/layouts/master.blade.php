@@ -21,12 +21,39 @@
   <!-- overlayScrollbars -->
   <link rel="stylesheet" href="{{asset('plugins/overlayScrollbars/css/OverlayScrollbars.min.css')}}">
   <!-- Theme style -->
+  <link rel="stylesheet" href="{{asset('css/app.css')}}">
+  <!-- <link rel="stylesheet" href="{{asset('css/argon.css')}}"> -->
   <link rel="stylesheet" href="{{asset('dist/css/adminlte.min.css')}}">
+
+
   <link rel="stylesheet" href="{{asset('css/custom.css')}}">
 
     <!-- Styles -->
     <!-- <link href="{{ asset('css/app.css') }}" rel="stylesheet"> -->
-    
+    <style type="text/css">
+ #users ul{
+    list-style: none;
+    background-color: white;
+    border: solid 1px black;
+    padding: 10px;
+}
+#users ul li{
+    padding: 5px;
+    list-style: none;
+    text-decoration: none;
+}
+#users{
+    background-color: #fff;
+    margin-top: 0px;
+    display: none;
+}
+#users p:hover{
+    background-color: #000;
+    color: white;
+    padding: 4px;
+   
+}
+   </style>  
 </head>
 <body class="hold-transition sidebar-mini">
 <div class="wrapper">
@@ -39,25 +66,15 @@
         <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
       </li>
       <li class="nav-item d-none d-sm-inline-block">
-        <a href="index3.html" class="nav-link">Home</a>
+        <a href="{{route('home')}}" class="nav-link">Home</a>
       </li>
       <li class="nav-item d-none d-sm-inline-block">
-        <a href="#" class="nav-link">Contact</a>
+        <a href="#" data-toggle="modal" data-target="#exampleModal2" class="nav-link">Data bundle config</a>
+      </li>
+      <li class="nav-item d-none d-sm-inline-block">
+        <a href="#" data-toggle="modal" data-target="#exampleModal" class="nav-link">Contact</a>
       </li>
     </ul>
-
-    <!-- SEARCH FORM -->
-    <!-- <form class="form-inline ml-3">
-      <div class="input-group input-group-sm">
-        <input class="form-control form-control-navbar" type="search" placeholder="Search" aria-label="Search">
-        <div class="input-group-append">
-          <button class="btn btn-navbar" type="submit">
-            <i class="fas fa-search"></i>
-          </button>
-        </div>
-      </div>
-    </form> -->
-
     <!-- Right navbar links -->
     <ul class="navbar-nav ml-auto">
       <!-- Notifications Dropdown Menu -->
@@ -88,16 +105,6 @@
         </div>
       </li>
       <li class="nav-item">
-        <a class="nav-link" data-widget="fullscreen" href="#" role="button">
-          <i class="fas fa-expand-arrows-alt"></i>
-        </a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" data-widget="control-sidebar" data-slide="true" href="#" role="button">
-          <i class="fas fa-th-large"></i>
-        </a>
-      </li>
-      <li class="nav-item">
         <a class="nav-link" role="button" href="{{ route('logout') }}"
                                        onclick="event.preventDefault();
                                                      document.getElementById('logout-form').submit();" data-toggle="tooltip" data-placement="top" title="Logout">
@@ -115,7 +122,6 @@
   <aside class="main-sidebar sidebar-dark-primary elevation-4">
     <!-- Brand Logo -->
     <a href="index3.html" class="brand-link">
-      <img src="{{asset('dist/img/AdminLTELogo.png')}}" alt="logo" class="brand-image img-circle elevation-3" style="opacity: .8">
       <span class="brand-text font-weight-light">DestroTechs ltd</span>
     </a>
 
@@ -124,7 +130,7 @@
       <!-- Sidebar user panel (optional) -->
       <div class="user-panel mt-3 pb-3 mb-3 d-flex">
         <div class="image">
-          <img src="{{asset('dist/img/user2-160x160.jpg')}}" class="img-circle elevation-2" alt="User Image">
+          <img src="{{asset('images/user.jpg')}}" class="img-circle elevation-2" alt="User Image">
         </div>
         <div class="info">
           <a href="{{route('home')}}" class="d-block">{{Auth::user()->name}}</a>
@@ -145,9 +151,9 @@
 
       <!-- Sidebar Menu -->
       <nav class="mt-2">
-        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+        <ul class="nav nav-pills nav-sidebar flex-column clearfix" data-widget="treeview" role="menu" data-accordion="false">
           <li class="nav-item">
-            <a href="#" class="nav-link active">
+            <a href="#" class="nav-link">
               <i class="nav-icon fas fa-tachometer-alt"></i>
               <p>
                 Management
@@ -156,7 +162,7 @@
             </a>
             <ul class="nav nav-treeview">
               <li class="nav-item">
-                <a href="{{route('allcustomers')}}" class="nav-link active">
+                <a href="{{route('allcustomers')}}" class="nav-link">
                   <i class="far fa-circle nav-icon"></i>
                   <p>List Customers</p>
                 </a>
@@ -201,7 +207,13 @@
               <li class="nav-item">
                 <a href="{{route('userlimitgroups')}}" class="nav-link">
                   <i class="far fa-circle nav-icon"></i>
-                  <p>Create Limit Groups</p>
+                  <p>Limit Groups</p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="{{route('bundlebalance')}}" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>Bundle Balance</p>
                 </a>
               </li>
             </ul>
@@ -216,7 +228,7 @@
             </a>
             <ul class="nav nav-treeview">
               <li class="nav-item">
-                <a href="{{route('allpayments')}}" class="nav-link active">
+                <a href="{{route('allpayments')}}" class="nav-link">
                   <i class="far fa-circle nav-icon"></i>
                   <p>All Payments</p>
                 </a>
@@ -239,7 +251,7 @@
             </a>
             <ul class="nav nav-treeview">
               <li class="nav-item">
-                <a href="{{route('get.cleanstale')}}" class="nav-link active">
+                <a href="{{route('get.cleanstale')}}" class="nav-link">
                   <i class="far fa-circle nav-icon"></i>
                   <p>Clean Stale Conns</p>
                 </a>
@@ -256,6 +268,12 @@
                   <p>Delete Accounting Rec</p>
                 </a>
               </li>
+              <li class="nav-item">
+                <a href="{{route('removeuser')}}" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>Remove Customer</p>
+                </a>
+              </li>
             </ul>
           </li>
           <li class="nav-item">
@@ -268,7 +286,7 @@
             </a>
             <ul class="nav nav-treeview">
               <li class="nav-item">
-                <a href="{{route('onlineusers')}}" class="nav-link active">
+                <a href="{{route('onlineusers')}}" class="nav-link">
                   <i class="far fa-circle nav-icon"></i>
                   <p>Online Customers</p>
                 </a>
@@ -279,14 +297,8 @@
                   <p>Last Conection Attempts</p>
                 </a>
               </li>
-                <li class="nav-item">
-                <a href="#" class="nav-link">
-                  <i class="far fa-circle nav-icon"></i>
-                  <p>User registration reports</p>
-                </a>
-              </li>
                <li class="nav-item">
-                <a href="#" class="nav-link">
+                <a href="{{route('topuser')}}" class="nav-link">
                   <i class="far fa-circle nav-icon"></i>
                   <p>Top User</p>
                 </a>
@@ -303,7 +315,7 @@
             </a>
             <ul class="nav nav-treeview">
               <li class="nav-item">
-                <a href="{{route('useraccounting')}}" class="nav-link active">
+                <a href="{{route('useraccounting')}}" class="nav-link">
                   <i class="far fa-circle nav-icon"></i>
                   <p>User Accounting</p>
                 </a>
@@ -326,7 +338,7 @@
           <li class="nav-item">
             <a href="{{route('plans')}}" class="nav-link">
               <i class="fas fa-chart-pie nav-icon"></i>
-              <p>Plans</p>
+              <p>Connection Plans</p>
             </a>
           </li>
           <li class="nav-item">
@@ -336,9 +348,15 @@
             </a>
           </li>
           <li class="nav-item">
-            <a href="{{route('plans')}}" class="nav-link">
-              <i class="fas fa-atlas nav-icon"></i>
-              <p>Invoices</p>
+            <a href="{{route('vouchers')}}" class="nav-link">
+              <i class="fas fa-plus nav-icon"></i>
+              <p>New Vouchers</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{{route('allvouchers')}}" class="nav-link">
+              <i class="fas fa-certificate nav-icon"></i>
+              <p>All Vouchers</p>
             </a>
           </li>
           <li class="nav-item">
@@ -347,6 +365,12 @@
               <p>Services Status</p>
             </a>
           </li>
+          <!-- <li class="nav-item">
+            <a href="{{route('sendsms')}}" class="nav-link">
+              <i class="fas fa-comments nav-icon"></i>
+              <p>Send SMS</p>
+            </a>
+          </li> -->
         </ul>
       </nav>
       <!-- /.sidebar-menu -->
@@ -387,13 +411,60 @@
     </div>
   </aside>
   <!-- /.control-sidebar -->
-
+  <!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Developer Contacts</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="row offset-1 col-md-11 d-flex">
+            <center>
+             <div class="btn-group mr-2" role="group" aria-label="First group">
+                <a href="https://www.facebook.com/morris.destro/" target="_blank" class="btn btn-primary"><i class="fab fa-facebook-f fa-3x"></i></a>
+                <a href="mailto:morrisdestro@gmail.com" class="btn btn-danger"><i class="fab fa-google fa-3x"></i></a>
+                <a href="https://twitter.com/destromorris2" target="_blank" class="btn btn-secondary"><i class="fab fa-twitter fa-3x"></i></a>
+                <a href="https://www.linkedin.com/in/morris-mbae-7b7654194/" target="_blank" class="btn btn-info"><i class="fab fa-linkedin fa-3x"></i></a>
+              </div>
+          </center>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="exampleModal2" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Request Developer</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+            <center>
+             <div class="btn-group mr-2" role="group" aria-label="First group">
+                <a href="https://wa.me/254701530647?text=Hello destro, i need configuration details for freeradius in order to start selling internet in terms of bundles(mbs)." target="_blank" class="btn btn-success"><i class="fab fa-whatsapp fa-4x"></i></a>
+              </div>
+          </center>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
   <!-- Main Footer -->
   <footer class="main-footer">
     <!-- To the right -->
-    <div class="float-right d-none d-sm-inline">
-      Anything you want
-    </div>
     <!-- Default to the left -->
     <strong>Copyright &copy; <?php echo date('Y');?> <a href="#">DestroTecths</a>.</strong> All rights reserved.
   </footer>
@@ -422,7 +493,7 @@
 <!-- AdminLTE dashboard demo (This is only for demo purposes) -->
 <script src="{{asset('dist/js/pages/dashboard2.js')}}"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
-
+<script type="text/javascript" src="{{asset('js/custom.js')}}"></script>
 @yield('scripts')
  @include('sweetalert::alert')
 

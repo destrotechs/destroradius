@@ -65,6 +65,7 @@
   				<th>Limit Name</th>
   				<th>OP</th>
   				<th>Value</th>
+          <th></th>
   			</tr>
   		</thead>
   		<tbody>
@@ -75,10 +76,13 @@
   					<td><input type="text" name="value[]" value="{{ $c->value }}" class="form-control">
               <input type="hidden" name="type[]" value="check">
             </td>
+            <td>
+              <a class="btn btn-danger btn-sm mt-2" href="{{ route('deletecheckuserlimit',['id'=>$c->id]) }}"><i class="fas fa-trash"></i></a>
+            </td>
   				</tr>
   			@empty
   				<tr>
-  					<td class="alert alert-danger" colspan="3">User has no check attributes</td>
+  					<td class="alert alert-danger" colspan="4">User has no check attributes</td>
   				</tr>
   			@endforelse
   		</tbody>
@@ -91,6 +95,7 @@
   				<th>Limit Name</th>
   				<th>OP</th>
   				<th>Value</th>
+          <th></th>
   			</tr>
   		</thead>
   		<tbody>
@@ -100,10 +105,13 @@
   					<td><input type="text" name="op[]" value="{{ $c->op }}" class="form-control"></td>
   					<td><input type="text" name="value[]" value="{{ $c->value }}" class="form-control">
               <input type="hidden" name="type[]" value="reply"></td>
+              <td>
+              <a class="btn btn-danger btn-sm mt-2" href="{{ route('deletereplyuserlimit',['id'=>$c->id]) }}"><i class="fas fa-trash"></i></a>
+            </td>
   				</tr>
   				@empty
   				<tr>
-  					<td class="alert alert-danger" colspan="3">User has no reply attributes</td>
+  					<td class="alert alert-danger" colspan="4">User has no reply attributes</td>
   				</tr>
   			@endforelse
   		</tbody>

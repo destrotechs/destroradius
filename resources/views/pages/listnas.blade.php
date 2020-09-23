@@ -1,7 +1,18 @@
 @extends('layouts.master')
 
 @section('content')
-<table class="table table-striped table-bordered">
+@if (session('success'))
+			    <div class="alert alert-success">
+			        {{ session('success') }}
+			    </div>
+			@endif
+			@if (session('error'))
+			    <div class="alert alert-danger">
+			        {{ session('error') }}
+			    </div>
+			@endif
+			<a href="{{ route('newnas') }}" class="nav-link float-right"><i class="fas fa-plus"></i>&nbsp;Add Nas&nbsp;<i class="fas fa-angle-right"></i><i class="fas fa-angle-right"></i></a>
+<table class="table table-sm table-striped table-bordered">
 	<thead>
 		<tr>
 			<th>#</th>
@@ -28,8 +39,8 @@
 			<td>{{ $n->description }}</td>
 			<td>
 				<div class="btn-group" role="group" aria-label="Basic example">
-				  	<a href="{{ route('editnas',['id'=>$n->id]) }}" class="btn btn-info text-white"><i class="fas fa-edit"></i></a>
-				  	<a href="#" class="btn btn-danger text-white"><i class="fas fa-trash"></i></a>
+				  	<a href="{{ route('editnas',['id'=>$n->id]) }}" class="btn btn-info btn-sm text-white"><i class="fas fa-edit"></i></a>
+				  	<a href="{{ route('deletenas',['id'=>$n->id]) }}" class="btn btn-danger btn-sm text-white"><i class="fas fa-trash"></i></a>
 				 
 				</div>
 			</td>

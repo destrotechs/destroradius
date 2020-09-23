@@ -5665,12 +5665,7 @@ input[type='button'].btn-block
     flex-wrap: wrap;
 }
 
-.nav-link
-{
-    display: block;
 
-    padding: .25rem .75rem;
-}
 .nav-link:hover,
 .nav-link:focus
 {
@@ -5722,18 +5717,6 @@ input[type='button'].btn-block
 
     border-top-left-radius: 0;
     border-top-right-radius: 0;
-}
-
-.nav-pills .nav-link
-{
-    border-radius: .375rem;
-}
-
-.nav-pills .nav-link.active,
-.nav-pills .show > .nav-link
-{
-    color: #fff;
-    background-color: #5e72e4;
 }
 
 .nav-fill .nav-item
@@ -5815,11 +5798,7 @@ input[type='button'].btn-block
     padding-left: 0;
 
     list-style: none;
-}
-.navbar-nav .nav-link
-{
-    padding-right: 0;
-    padding-left: 0;
+  padding-left: 0;
 }
 .navbar-nav .dropdown-menu
 {

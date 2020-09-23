@@ -10,6 +10,7 @@ Edit Customer
 	    <button class="btn btn-outline-primary" type="submit" id="fetch">Fetch</button>
 	  </div>
 	</div>
+	<div id="users"></div>
 	{{csrf_field()}}
 </form>
 <div class="dropdown-divider"></div>

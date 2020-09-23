@@ -17,7 +17,6 @@ Online Customers
 				</tr>
 			</thead>
 			<tbody>
-				<?php $num=0;$ip=$_SERVER['REMOTE_ADDR'];?>
 				@forelse($onlineusers as $u)
 				<?php $num++;?>
 					<tr>
@@ -31,10 +30,14 @@ Online Customers
 				@empty
 					<tr>
 						<td class="alert alert-danger" colspan="6">There are no customers online</td>
-						<?php echo $ip;?>
 					</tr>
 				@endforelse
 			</tbody>
+			<tfoot>
+				<tr>
+					<td>{!! $onlineusers->links() !!}</td>
+				</tr>
+			</tfoot>
 		</table>
 	</div>
 </div>
