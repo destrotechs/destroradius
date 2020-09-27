@@ -20,9 +20,10 @@
 		<div id="err"></div>
 		
 		<label>Username</label>
-		<input type="text" class="form-control" name="username" placeholder="username" id="username">
+		<input type="text" class="form-control username" name="username" placeholder="username" id="username">
 		<small>Enter the username here and click check</small>
 		<br>
+		<div id="users"></div>
 		<button class="btn btn-success btn-md" type="submit">Check</button>
 		{{ csrf_field() }}
 	</form>

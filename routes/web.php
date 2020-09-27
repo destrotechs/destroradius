@@ -69,6 +69,8 @@ Route::get('/home/deletechecklimitfromgroup/{id}','HomeController@postDeleteChec
 Route::get('/home/deletereplylimitfromgroup/{id}','HomeController@postDeleteReplyLimit')->name('deletereplylimit');
 Route::get('/home/deletecheckuserlimitfromgroup/{id}','HomeController@postDeleteCheckUserLimit')->name('deletecheckuserlimit');
 Route::get('/home/deletereplyuserlimitfromgroup/{id}','HomeController@postDeleteReplyUserLimit')->name('deletereplyuserlimit');
+Route::get('/home/disconnect/customer','HomeController@disconnectUser')->name('disconnectcustomer');
+
 //post routes
 Route::post('/home/newcustomer','HomeController@postNewCustomer')->name('post.newcustomer');
 Route::post('/home/fetchcustomer','HomeController@postFetchCustomer')->name('fetchcustomertoedit');

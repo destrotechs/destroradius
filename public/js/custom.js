@@ -12,7 +12,7 @@ $(document).ready(function(){
 	// })
 
 	$(".username").on("keyup",function(){
-		$("#users").show();
+		
 		var skey=$(this).val();
 		var _token=$("input[name='_token']").val();
 		if (skey!="") {
@@ -23,6 +23,7 @@ $(document).ready(function(){
 				success:function(data){
 					$("#users").html(data);
 					$(".users").html(data);
+					$("#users").show();
 				}
 			})
 		}

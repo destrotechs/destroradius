@@ -68,7 +68,7 @@
           <!-- /.col -->
         </div>
         <!-- /.row -->
-        <div class="row"><div class="offset-3 col-md-6">{!! $usersChart->container() !!}</div></div>
+        <div class="row"><div class="col-md-12">{!! $usersChart->container() !!}</div></div>
 
 </div>
 @endsection

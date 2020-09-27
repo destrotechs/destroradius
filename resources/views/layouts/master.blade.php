@@ -262,6 +262,12 @@
                   <p>Test Connectivity</p>
                 </a>
               </li>
+               <li class="nav-item">
+                <a href="{{route('disconnectcustomer')}}" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>Disconnect Customer</p>
+                </a>
+              </li>
               <li class="nav-item">
                 <a href="{{route('deleteacctrec')}}" class="nav-link">
                   <i class="far fa-circle nav-icon"></i>
@@ -297,12 +303,12 @@
                   <p>Last Conection Attempts</p>
                 </a>
               </li>
-               <li class="nav-item">
+               {{-- <li class="nav-item">
                 <a href="{{route('topuser')}}" class="nav-link">
                   <i class="far fa-circle nav-icon"></i>
                   <p>Top User</p>
                 </a>
-              </li>
+              </li> --}}
             </ul>
           </li>
            <li class="nav-item">
@@ -383,7 +389,7 @@
     <!-- Content Header (Page header) -->
     <div class="content-header">
       <div class="container-fluid">
-        <div class="row mb-2">
+        <div class="row mb-.1">
           <div class="col-sm-6">
             <h3 class="m-0 text-dark">@yield('pagetitle')</h3>
           </div><!-- /.col -->

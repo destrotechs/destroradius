@@ -10,6 +10,7 @@ Customer Accounting rec
 	    <button class="btn btn-outline-danger" type="button" id="fetch">Delete</button>
 	  </div>
 	</div>
+	<div id="users"></div>
 	{{csrf_field()}}
 </form>
 <div class="dropdown-divider"></div>

@@ -16,6 +16,7 @@ Online Customers
 					<th>Total Bandwidth</th>
 				</tr>
 			</thead>
+<?php $num=0;?>
 			<tbody>
 				@forelse($onlineusers as $u)
 				<?php $num++;?>
@@ -25,7 +26,7 @@ Online Customers
 						<td>{{ $u->framedipaddress }}</td>
 						<td>{{ $u->acctstarttime }}</td>
 						<td>{{ $u->nasipaddress }}</td>
-						<td>{{ $u->acctinputoctets+$u->acctoutputoctets }}</td>
+						<td>{{ $u->AcctInputOctets+$u->AcctOutputOctets }}</td>
 					</tr>
 				@empty
 					<tr>

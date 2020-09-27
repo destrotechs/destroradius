@@ -34,9 +34,12 @@ class HomeController extends Controller
             $plans=DB::table('bundle_plans')->pluck('plantitle');
             $planscost=DB::table('bundle_plans')->pluck('cost');
             $onlineusers=DB::table('radacct')->where('acctstoptime','=',NULL)->count();
+            $users=DB::table('customers')->count();
+            $plansnum=DB::table('bundle_plans')->count();
+            $transactions=DB::table('transactions')->count();
             $usersChart = new userChart;
-        $usersChart->labels($plans);
-        $usersChart->dataset('Plan cost (KES)', 'line', $planscost)->options(['fill'=>'true','borderColor'=>'red','backgroundcolor'=>'rgb(255, 99, 132)']);
+        $usersChart->labels(['users','plans','transactions']);
+        $usersChart->dataset('count', 'bar', [$users,$plansnum,$transactions])->options(['fill'=>'true','borderColor'=>'lightblue','backgroundColor'=>'skyblue']);
 
         return view('home',compact('sales','customers','usersChart','onlineusers'));
     }
@@ -839,5 +842,9 @@ class HomeController extends Controller
         }
         $output.="";
         echo $output;
+    }
+    public function disconnectUser(){
+        $nas=DB::table('nas')->get();
+        return view('pages.disconnectcustomer',compact('nas'));
     }
 }
